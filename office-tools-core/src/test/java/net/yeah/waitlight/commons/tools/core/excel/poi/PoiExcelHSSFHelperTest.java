@@ -3,6 +3,7 @@ package net.yeah.waitlight.commons.tools.core.excel.poi;
 import com.github.javafaker.Faker;
 import lombok.extern.slf4j.Slf4j;
 import net.yeah.waitlight.commons.tools.core.excel.ExcelHelper;
+import net.yeah.waitlight.commons.tools.core.excel.XLS;
 import net.yeah.waitlight.commons.tools.core.model.Gender;
 import net.yeah.waitlight.commons.tools.core.model.Student;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -19,7 +20,7 @@ import java.util.Objects;
 
 @Slf4j
 public class PoiExcelHSSFHelperTest {
-    public static final int TOTAL = 65536;
+    public static final int TOTAL = XLS.MAX_ROW_NUM/1000;
     public static final String EXCEL_PATH = "hssf-test.xls";
 
     private final ExcelHelper<HSSFWorkbook> helper = new PoiExcelHSSFHelper();

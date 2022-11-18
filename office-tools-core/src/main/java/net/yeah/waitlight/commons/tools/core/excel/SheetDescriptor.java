@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Collection;
 import java.util.List;
 
 @Data
@@ -11,5 +12,5 @@ import java.util.List;
 @AllArgsConstructor
 public class SheetDescriptor<T> {
     private RowDescriptor<String> titleRow;
-    private List<RowDescriptor<T>> dataRows;
+    private Collection<T> data;
 }

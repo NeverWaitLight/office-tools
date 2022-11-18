@@ -5,6 +5,7 @@ import net.yeah.waitlight.commons.tools.core.converter.ConversionService;
 import net.yeah.waitlight.commons.tools.core.excel.CellDescriptor;
 import net.yeah.waitlight.commons.tools.core.excel.ExcelColumn;
 import net.yeah.waitlight.commons.tools.core.excel.RowDescriptor;
+import net.yeah.waitlight.commons.tools.core.excel.SheetDescriptor;
 import net.yeah.waitlight.commons.tools.core.reflection.FieldDescriptor;
 import net.yeah.waitlight.commons.tools.core.reflection.ReflectionUtils;
 import org.apache.poi.ss.usermodel.Cell;
@@ -16,6 +17,7 @@ import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Supplier;
 
 @Slf4j
 public abstract class AbstractPoiExcelHelper {
@@ -42,28 +44,43 @@ public abstract class AbstractPoiExcelHelper {
     protected <D> void fillWorkbook(Collection<D> data, Workbook workbook) {
         Objects.requireNonNull(workbook);
         Objects.requireNonNull(data);
-        fillSheet(data, workbook.createSheet());
+        D d = data.stream().findFirst().orElseThrow(() -> new RuntimeException());
+        List<CellDescriptor> titleCellDescriptors = map2Dp(d).stream()
+                .peek(cdp -> cdp.setValueSupplier(() -> {
+                    ExcelColumn excelColumn = cdp.getFdp().getAnnotation(ExcelColumn.class);
+                    return excelColumn.title();
+                }))
+                .toList();
+        RowDescriptor<String> titleRowDescriptor = new RowDescriptor<String>(null, titleCellDescriptors);
+        SheetDescriptor<D> tSheetDescriptor = new SheetDescriptor<D>(titleRowDescriptor, data);
+        fillSheet(tSheetDescriptor, workbook.createSheet());
     }
 
-    protected <D> void fillSheet(Collection<D> data, Sheet sheet) {
+    protected <D> void fillSheet(SheetDescriptor<D> sheetDescriptor, Sheet sheet) {
+        fillRow(sheetDescriptor.getTitleRow(), sheet.createRow(0));
         int rownum = 1;
-
-        List<CellDescriptor> cellDescriptors;
-        for (D datum : data) {
-            cellDescriptors = map2Dp(datum);
+        for (D datum : sheetDescriptor.getData()) {
+            List<CellDescriptor> cellDescriptors = map2Dp(datum);
             fillRow(new RowDescriptor<>(datum, cellDescriptors), sheet.createRow(rownum++));
         }
     }
 
     protected <D> void fillRow(RowDescriptor<D> rowDescriptor, Row row) {
         int cellnum = 0;
+        D obj = rowDescriptor.getObj();
         for (CellDescriptor cdp : rowDescriptor.getCellDescriptors()) {
+            if (Objects.nonNull(rowDescriptor.getObj())) {
+                cdp.setValueSupplier(() -> ReflectionUtils.getValue(obj, cdp.getFdp().getGetter()));
+            }
             fillCell(cdp, row.createCell(cellnum++));
         }
     }
 
     protected void fillCell(CellDescriptor cdp, Cell cell) {
-        Object value = cdp.getValueSupplier().get();
+        Supplier<?> supplier = cdp.getValueSupplier();
+        if (Objects.isNull(supplier)) return;
+
+        Object value = supplier.get();
         FieldDescriptor fdp = cdp.getFdp();
         ExcelColumn annotation = fdp.getAnnotation(ExcelColumn.class);
         Class<? extends ConversionService> aClass = annotation.conversionService();

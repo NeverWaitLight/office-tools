@@ -10,7 +10,6 @@
     <artifactId>office-tools-core</artifactId>
     <packaging>jar</packaging>
 
-
     <dependencies>
         <dependency>
             <groupId>org.apache.commons</groupId>
