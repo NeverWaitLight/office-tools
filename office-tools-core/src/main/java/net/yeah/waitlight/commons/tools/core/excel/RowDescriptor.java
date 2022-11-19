@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RowDescriptor<T> {
-    private T obj;
+public class RowDescriptor {
+    private Object obj;
     private List<CellDescriptor> cellDescriptors;
 }

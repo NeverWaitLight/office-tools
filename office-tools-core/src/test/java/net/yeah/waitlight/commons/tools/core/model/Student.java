@@ -3,7 +3,7 @@ package net.yeah.waitlight.commons.tools.core.model;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.yeah.waitlight.commons.tools.core.converter.Boolean2StringConvertor;
+import net.yeah.waitlight.commons.tools.core.converter.Boolean2StringService;
 import net.yeah.waitlight.commons.tools.core.excel.ExcelColumn;
 
 @Setter
@@ -28,6 +28,6 @@ public class Student {
     @ExcelColumn(title = "性别")
     private Gender gender;
 
-    @ExcelColumn(title = "是否入学", conversionService = Boolean2StringConvertor.class)
+    @ExcelColumn(title = "是否入学", conversionService = Boolean2StringService.class)
     private Boolean checkin;
 }

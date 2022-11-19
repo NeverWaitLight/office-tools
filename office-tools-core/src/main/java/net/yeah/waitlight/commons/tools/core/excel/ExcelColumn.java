@@ -1,7 +1,7 @@
 package net.yeah.waitlight.commons.tools.core.excel;
 
 import net.yeah.waitlight.commons.tools.core.converter.ConversionService;
-import net.yeah.waitlight.commons.tools.core.converter.DefaultConvertor;
+import net.yeah.waitlight.commons.tools.core.converter.DefaultConvertService;
 
 import java.lang.annotation.*;
 
@@ -18,5 +18,10 @@ public @interface ExcelColumn {
 
     boolean canExport() default true;
 
-    Class<? extends ConversionService> conversionService() default DefaultConvertor.class;
+    Class<? extends ConversionService> conversionService() default DefaultConvertService.class;
+
+    /**
+     * 转换工具
+     */
+    Convert[] converts() default {};
 }

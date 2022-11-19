@@ -6,12 +6,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class SheetDescriptor<T> {
-    private RowDescriptor<String> titleRow;
+    private Function<T, RowDescriptor> titleFunction;
     private Collection<T> data;
 }

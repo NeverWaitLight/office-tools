@@ -17,6 +17,7 @@ import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Slf4j
@@ -43,32 +44,36 @@ public abstract class AbstractPoiExcelHelper {
     protected <T> void fillWorkbook(Collection<T> data, Workbook workbook) {
         Objects.requireNonNull(workbook);
         Objects.requireNonNull(data);
+        Function<T, RowDescriptor> f = d -> {
+            List<CellDescriptor> titleCellDescriptors = datum2CellDescriptor(d);
+            titleCellDescriptors.forEach(cdp -> cdp.setValueSupplier(() -> {
+                ExcelColumn excelColumn = cdp.getFdp().getAnnotation(ExcelColumn.class);
+                return excelColumn.title();
+            }));
+            return new RowDescriptor(null, titleCellDescriptors);
+        };
 
-        T d = data.stream().findFirst().orElseThrow(RuntimeException::new);
-        List<CellDescriptor> titleCellDescriptors = datum2CellDescriptor(d).stream()
-                .peek(cdp -> cdp.setValueSupplier(() -> {
-                    ExcelColumn excelColumn = cdp.getFdp().getAnnotation(ExcelColumn.class);
-                    return excelColumn.title();
-                }))
-                .toList();
-        RowDescriptor<String> titleRowDescriptor = new RowDescriptor<String>(null, titleCellDescriptors);
-        SheetDescriptor<T> sheetDescriptor = new SheetDescriptor<T>(titleRowDescriptor, data);
+        SheetDescriptor<T> sheetDescriptor = new SheetDescriptor<>(f, data);
 
         fillSheet(sheetDescriptor, workbook.createSheet());
     }
 
     protected <T> void fillSheet(SheetDescriptor<T> sheetDescriptor, Sheet sheet) {
-        fillRow(sheetDescriptor.getTitleRow(), sheet.createRow(0));
-        int rownum = 1;
+        int rownum = 0;
         for (T datum : sheetDescriptor.getData()) {
-            List<CellDescriptor> cellDescriptors = datum2CellDescriptor(datum);
-            fillRow(new RowDescriptor<>(datum, cellDescriptors), sheet.createRow(rownum++));
+            if (rownum == 0) {
+                Function<T, RowDescriptor> titleFunction = sheetDescriptor.getTitleFunction();
+                RowDescriptor titleRowDescriptor = titleFunction.apply(datum);
+                fillRow(titleRowDescriptor, sheet.createRow(rownum++));
+            }
+
+            fillRow(new RowDescriptor(datum, datum2CellDescriptor(datum)), sheet.createRow(rownum++));
         }
     }
 
-    protected <T> void fillRow(RowDescriptor<T> rowDescriptor, Row row) {
+    protected void fillRow(RowDescriptor rowDescriptor, Row row) {
         int cellnum = 0;
-        T obj = rowDescriptor.getObj();
+        Object obj = rowDescriptor.getObj();
         for (CellDescriptor cdp : rowDescriptor.getCellDescriptors()) {
             if (Objects.nonNull(rowDescriptor.getObj())) {
                 cdp.setValueSupplier(() -> ReflectionUtils.getValue(obj, cdp.getFdp().getGetter()));
