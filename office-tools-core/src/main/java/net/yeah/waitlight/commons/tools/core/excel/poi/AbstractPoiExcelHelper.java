@@ -21,9 +21,10 @@ import java.util.function.Supplier;
 
 @Slf4j
 public abstract class AbstractPoiExcelHelper {
+
     private static final ConcurrentMap<Class<?>, List<CellDescriptor>> CDP_CACHE = new ConcurrentHashMap<>();
 
-    protected <T> List<CellDescriptor> map2Dp(T datum) {
+    protected <T> List<CellDescriptor> datum2CellDescriptor(T datum) {
         Objects.requireNonNull(datum);
 
         return CDP_CACHE.computeIfAbsent(
@@ -32,42 +33,42 @@ public abstract class AbstractPoiExcelHelper {
                         .stream()
                         .map(fdp -> {
                             ExcelColumn anno = fdp.getAnnotation(ExcelColumn.class);
-                            return new CellDescriptor()
-                                    .setCellnum(anno.order())
-                                    .setFdp(fdp);
+                            return new CellDescriptor().setCellnum(anno.order()).setFdp(fdp);
                         })
                         .sorted(Comparator.comparingInt(CellDescriptor::getCellnum))
                         .toList()
         );
     }
 
-    protected <D> void fillWorkbook(Collection<D> data, Workbook workbook) {
+    protected <T> void fillWorkbook(Collection<T> data, Workbook workbook) {
         Objects.requireNonNull(workbook);
         Objects.requireNonNull(data);
-        D d = data.stream().findFirst().orElseThrow(() -> new RuntimeException());
-        List<CellDescriptor> titleCellDescriptors = map2Dp(d).stream()
+
+        T d = data.stream().findFirst().orElseThrow(RuntimeException::new);
+        List<CellDescriptor> titleCellDescriptors = datum2CellDescriptor(d).stream()
                 .peek(cdp -> cdp.setValueSupplier(() -> {
                     ExcelColumn excelColumn = cdp.getFdp().getAnnotation(ExcelColumn.class);
                     return excelColumn.title();
                 }))
                 .toList();
         RowDescriptor<String> titleRowDescriptor = new RowDescriptor<String>(null, titleCellDescriptors);
-        SheetDescriptor<D> tSheetDescriptor = new SheetDescriptor<D>(titleRowDescriptor, data);
-        fillSheet(tSheetDescriptor, workbook.createSheet());
+        SheetDescriptor<T> sheetDescriptor = new SheetDescriptor<T>(titleRowDescriptor, data);
+
+        fillSheet(sheetDescriptor, workbook.createSheet());
     }
 
-    protected <D> void fillSheet(SheetDescriptor<D> sheetDescriptor, Sheet sheet) {
+    protected <T> void fillSheet(SheetDescriptor<T> sheetDescriptor, Sheet sheet) {
         fillRow(sheetDescriptor.getTitleRow(), sheet.createRow(0));
         int rownum = 1;
-        for (D datum : sheetDescriptor.getData()) {
-            List<CellDescriptor> cellDescriptors = map2Dp(datum);
+        for (T datum : sheetDescriptor.getData()) {
+            List<CellDescriptor> cellDescriptors = datum2CellDescriptor(datum);
             fillRow(new RowDescriptor<>(datum, cellDescriptors), sheet.createRow(rownum++));
         }
     }
 
-    protected <D> void fillRow(RowDescriptor<D> rowDescriptor, Row row) {
+    protected <T> void fillRow(RowDescriptor<T> rowDescriptor, Row row) {
         int cellnum = 0;
-        D obj = rowDescriptor.getObj();
+        T obj = rowDescriptor.getObj();
         for (CellDescriptor cdp : rowDescriptor.getCellDescriptors()) {
             if (Objects.nonNull(rowDescriptor.getObj())) {
                 cdp.setValueSupplier(() -> ReflectionUtils.getValue(obj, cdp.getFdp().getGetter()));
@@ -76,12 +77,12 @@ public abstract class AbstractPoiExcelHelper {
         }
     }
 
-    protected void fillCell(CellDescriptor cdp, Cell cell) {
-        Supplier<?> supplier = cdp.getValueSupplier();
+    protected void fillCell(CellDescriptor cellDescriptor, Cell cell) {
+        Supplier<?> supplier = cellDescriptor.getValueSupplier();
         if (Objects.isNull(supplier)) return;
 
         Object value = supplier.get();
-        FieldDescriptor fdp = cdp.getFdp();
+        FieldDescriptor fdp = cellDescriptor.getFdp();
         ExcelColumn annotation = fdp.getAnnotation(ExcelColumn.class);
         Class<? extends ConversionService> aClass = annotation.conversionService();
         ConversionService conversionService = null;

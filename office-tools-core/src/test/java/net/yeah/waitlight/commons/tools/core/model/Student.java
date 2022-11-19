@@ -1,11 +1,13 @@
 package net.yeah.waitlight.commons.tools.core.model;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.yeah.waitlight.commons.tools.core.converter.Boolean2StringConvertor;
 import net.yeah.waitlight.commons.tools.core.excel.ExcelColumn;
 
-@Data
+@Setter
+@Getter
 @Accessors(chain = true)
 public class Student {
     @ExcelColumn(title = "编号")

@@ -20,7 +20,7 @@ import java.util.Objects;
 
 @Slf4j
 public class PoiExcelHSSFHelperTest {
-    public static final int TOTAL = XLS.MAX_ROW_NUM/1000;
+    public static final int TOTAL = XLS.MAX_ROW_NUM / 100;
     public static final String EXCEL_PATH = "hssf-test.xls";
 
     private final ExcelHelper<HSSFWorkbook> helper = new PoiExcelHSSFHelper();
