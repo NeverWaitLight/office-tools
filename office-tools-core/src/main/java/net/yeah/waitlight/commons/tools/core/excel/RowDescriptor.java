@@ -15,7 +15,6 @@ import java.util.List;
 @AllArgsConstructor
 @Accessors(chain = true)
 public class RowDescriptor {
-    private Object obj;
     private Row row;
     private List<CellDescriptor> cellDescriptors;
 }

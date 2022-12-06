@@ -3,9 +3,10 @@ package net.yeah.waitlight.commons.tools.core.reflection;
 import net.yeah.waitlight.commons.tools.core.excel.ExcelColumn;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -22,59 +23,48 @@ public class ReflectionUtils {
     private static final ConcurrentMap<Class<?>, ConcurrentMap<String, Method>> SETTER_CACHE = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Class<?>, List<FieldDescriptor>> DP_CACHE = new ConcurrentHashMap<>();
 
-    public static List<FieldDescriptor> getFieldDescriptors4Excel(Object obj) {
-        Objects.requireNonNull(obj);
+    public static List<FieldDescriptor> getFieldDescriptors4Excel(Class<?> klass) {
+        Objects.requireNonNull(klass);
 
         return DP_CACHE.computeIfAbsent(
-                obj.getClass(),
+                klass,
                 key -> Arrays.stream(key.getDeclaredFields())
                         .filter(field -> field.isAnnotationPresent(ExcelColumn.class))
                         .sorted(Comparator.comparingInt(field -> field.getAnnotation(ExcelColumn.class).order()))
                         .map(field -> new FieldDescriptor()
                                 .setField(field)
-                                .setSetter(getSetter(obj, field))
-                                .setGetter(getGetter(obj, field))
+                                .setSetter(getSetter(klass, field))
+                                .setGetter(getGetter(klass, field))
                         )
                         .toList()
         );
     }
 
-    public static <T> Method getGetter(T obj, Field field) {
-        return getGetter(obj, field.getName());
+    public static Method getGetter(Class<?> klass, Field field) {
+        return getGetter(klass, field.getName());
     }
 
-    public static <T> Method getGetter(T obj, String fieldName) {
-        Objects.requireNonNull(obj);
-        Method getter = GETTER_CACHE.computeIfAbsent(obj.getClass(), klass -> getAllMethods("get", obj))
+    public static Method getGetter(Class<?> klass, String fieldName) {
+        Objects.requireNonNull(klass);
+        Method getter = GETTER_CACHE.computeIfAbsent(klass, key -> getAllMethods("get", klass))
                 .get(fieldName);
         return Objects.requireNonNull(getter);
     }
 
-    public static <T> Method getSetter(T obj, Field field) {
-        return getSetter(obj, field.getName());
+    public static Method getSetter(Class<?> klass, Field field) {
+        return getSetter(klass, field.getName());
     }
 
-    public static <T> Method getSetter(T obj, String fieldName) {
-        Objects.requireNonNull(obj);
-        Method setter = SETTER_CACHE.computeIfAbsent(obj.getClass(), klass -> getAllMethods("set", obj))
+    public static Method getSetter(Class<?> klass, String fieldName) {
+        Objects.requireNonNull(klass);
+        Method setter = SETTER_CACHE.computeIfAbsent(klass, key -> getAllMethods("set", klass))
                 .get(fieldName);
         return Objects.requireNonNull(setter);
     }
 
-    public static <O> Object getValue(O obj, Method getter) {
-        Objects.requireNonNull(obj);
-        Objects.requireNonNull(getter);
-
-        try {
-            return getter.invoke(obj);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static <T> ConcurrentMap<String, Method> getAllMethods(String prefix, T obj) {
-        return Arrays.stream(obj.getClass().getDeclaredMethods())
-                .filter(m -> m.canAccess(obj))
+    public static ConcurrentMap<String, Method> getAllMethods(String prefix, Class<?> klass) {
+        return Arrays.stream(klass.getDeclaredMethods())
+                .filter(m -> Modifier.isPublic(m.getModifiers()))
                 .filter(m -> m.getName().startsWith(prefix))
                 .collect(Collectors.toConcurrentMap(m -> {
                     String name = m.getName();
@@ -96,9 +86,23 @@ public class ReflectionUtils {
                 .toList();
     }
 
-    public static Object getValue(Method method, Object obj) {
+    public static Object invoke(Object obj, Method method, Object... args) {
+        Objects.requireNonNull(obj);
+        Objects.requireNonNull(method);
         try {
-            return method.invoke(obj);
+            return method.invoke(obj, args);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings({"unchecked"})
+    public static <D> D getInstance(Class<D> klass) {
+        Constructor<?> constructor = klass.getConstructors()[0];
+        Objects.requireNonNull(constructor);
+
+        try {
+            return (D) constructor.newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

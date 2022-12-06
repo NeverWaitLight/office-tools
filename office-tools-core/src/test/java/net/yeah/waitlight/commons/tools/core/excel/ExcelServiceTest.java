@@ -10,6 +10,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,12 +37,10 @@ public class ExcelServiceTest {
     }
 
     @Test
-    public void reade() {
-//        try {
-//            List<Student> read = excelService.read(new FileInputStream(EXCEL_PATH), Student.class);
-//        } catch (FileNotFoundException e) {
-//            throw new RuntimeException(e);
-//        }
+    public void reade() throws FileNotFoundException {
+        List<Student> data = excelService.read(new FileInputStream("target/" + EXCEL_PATH), Student.class);
+        Assert.assertEquals(data.size(), TOTAL);
+        System.out.println();
     }
 
     @Before

@@ -5,6 +5,7 @@ import net.yeah.waitlight.commons.tools.core.excel.CellDescriptor;
 import net.yeah.waitlight.commons.tools.core.excel.ExcelColumn;
 import net.yeah.waitlight.commons.tools.core.excel.RowDescriptor;
 import net.yeah.waitlight.commons.tools.core.excel.SheetDescriptor;
+import net.yeah.waitlight.commons.tools.core.reflection.FieldDescriptor;
 import net.yeah.waitlight.commons.tools.core.reflection.ReflectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.poi.ss.usermodel.Cell;
@@ -13,13 +14,10 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
 @Slf4j
 public abstract class AbstractPoiExcel {
-
-    private static final ConcurrentMap<Class<?>, List<CellDescriptor>> CDP_CACHE = new ConcurrentHashMap<>();
 
     protected void fillWorkbook(Map<String, Collection<Object>> allData, Workbook workbook) {
         if (MapUtils.isEmpty(allData)) return;
@@ -56,24 +54,24 @@ public abstract class AbstractPoiExcel {
                 .map(ExcelColumn::title)
                 .map(title -> new CellDescriptor(null, title))
                 .toList();
-        return new RowDescriptor(null, row, cellDescriptors);
+        return new RowDescriptor(row, cellDescriptors);
     }
 
     protected RowDescriptor resolveDataRow(Row row, Object datum) {
         Objects.requireNonNull(datum);
 
-        List<CellDescriptor> cellDescriptors = ReflectionUtils.getFieldDescriptors4Excel(datum)
+        List<CellDescriptor> cellDescriptors = ReflectionUtils.getFieldDescriptors4Excel(datum.getClass())
                 .stream()
                 .map(fdp -> {
                     CellDescriptor cellDescriptor = new CellDescriptor();
                     cellDescriptor.setField(fdp.getField())
                             .setGetter(fdp.getGetter())
                             .setSetter(fdp.getSetter());
-                    cellDescriptor.setValue(ReflectionUtils.getValue(fdp.getGetter(), datum));
+                    cellDescriptor.setValue(ReflectionUtils.invoke(datum, fdp.getGetter()));
                     return cellDescriptor;
                 })
                 .toList();
-        return new RowDescriptor(datum, row, cellDescriptors);
+        return new RowDescriptor(row, cellDescriptors);
     }
 
     protected void fillRow(RowDescriptor rowDescriptor) {
@@ -98,53 +96,57 @@ public abstract class AbstractPoiExcel {
     protected <D> List<D> readWorkbook(Workbook workbook, Class<D> klass) {
         if (Objects.isNull(workbook) || Objects.isNull(klass)) return Collections.emptyList();
 
-        int activeSheetIndex = workbook.getActiveSheetIndex();
-        for (int sheetnum = 0; sheetnum <= activeSheetIndex; sheetnum++) {
+        final List<D> data = new ArrayList<>();
+        for (int sheetnum = 0; sheetnum < workbook.getNumberOfSheets(); sheetnum++) {
             Sheet sheet = workbook.getSheetAt(sheetnum);
-            readSheet(sheet, klass);
+            data.addAll(readSheet(sheet, klass));
         }
-
-        return Collections.emptyList();
+        return data;
     }
 
     protected <D> List<D> readSheet(Sheet sheet, Class<D> klass) {
-        int lastRowNum = sheet.getLastRowNum();
-        for (int rownum = 0; rownum <= lastRowNum; rownum++) {
+        final List<D> data = new ArrayList<>();
+        for (int rownum = 1; rownum < sheet.getLastRowNum(); rownum++) {
             Row row = sheet.getRow(rownum);
-            readRow(row, klass);
+            data.add(readRow(row, klass));
         }
-        return Collections.emptyList();
+        return data;
     }
 
-    protected <D> List<D> readRow(Row row, Class<D> klass) {
-        int lastCellNum = row.getLastCellNum();
-        for (int cellnum = 0; cellnum <= lastCellNum; cellnum++) {
+    protected <D> D readRow(Row row, Class<D> klass) {
+        D datum = ReflectionUtils.getInstance(klass);
+        List<FieldDescriptor> fieldDescriptors = ReflectionUtils.getFieldDescriptors4Excel(datum.getClass());
+        for (int cellnum = 0; cellnum < row.getLastCellNum(); cellnum++) {
             Cell cell = row.getCell(cellnum);
-            readCell(cell);
+            FieldDescriptor fieldDescriptor = fieldDescriptors.get(cellnum);
+            readCell(cell, value -> {
+                try {
+                    ReflectionUtils.invoke(datum, fieldDescriptor.getSetter(), value);
+                    return true;
+                } catch (Exception e) {
+                    log.error("Set value has error", e);
+                    return false;
+                }
+            });
         }
-        return Collections.emptyList();
+        return datum;
     }
 
-    protected <F> F readCell(Cell cell) {
-        if (Objects.isNull(cell)) {
-            log.debug("Cell is empty!");
-            return null;
-        }
+    protected void readCell(Cell cell, Function<Object, Boolean> func) {
+        Objects.requireNonNull(cell);
         switch (cell.getCellType()) {
             case BOOLEAN:
+                if (func.apply(cell.getBooleanCellValue())) return;
                 break;
             case NUMERIC:
+                if (func.apply(cell.getNumericCellValue())) return;
                 break;
             case STRING:
-                break;
-            case BLANK:
-                break;
-            case ERROR:
+                if (func.apply(cell.getStringCellValue())) return;
                 break;
             default:
                 break;
         }
-        return null;
     }
 
 
