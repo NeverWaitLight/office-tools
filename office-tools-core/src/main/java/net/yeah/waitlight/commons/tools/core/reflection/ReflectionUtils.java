@@ -1,12 +1,12 @@
 package net.yeah.waitlight.commons.tools.core.reflection;
 
+import net.yeah.waitlight.commons.tools.core.excel.ExcelColumn;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
@@ -17,18 +17,19 @@ public class ReflectionUtils {
         throw new UnsupportedOperationException("This is util");
     }
 
+    private static final ConcurrentMap<Class<?>, List<Field>> FIELD_CACHE = new ConcurrentHashMap<>();
     private static final ConcurrentMap<Class<?>, ConcurrentMap<String, Method>> GETTER_CACHE = new ConcurrentHashMap<>();
     private static final ConcurrentMap<Class<?>, ConcurrentMap<String, Method>> SETTER_CACHE = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Class<?>, List<FieldDescriptor>> DP_CACHE = new ConcurrentHashMap<>();
 
-    public static <D, A extends Annotation> List<FieldDescriptor> getFieldDescriptors(D obj, Class<A> fieldAnnoType) {
+    public static List<FieldDescriptor> getFieldDescriptors4Excel(Object obj) {
         Objects.requireNonNull(obj);
-        Objects.requireNonNull(fieldAnnoType);
 
         return DP_CACHE.computeIfAbsent(
                 obj.getClass(),
                 key -> Arrays.stream(key.getDeclaredFields())
-                        .filter(field -> field.isAnnotationPresent(fieldAnnoType))
+                        .filter(field -> field.isAnnotationPresent(ExcelColumn.class))
+                        .sorted(Comparator.comparingInt(field -> field.getAnnotation(ExcelColumn.class).order()))
                         .map(field -> new FieldDescriptor()
                                 .setField(field)
                                 .setSetter(getSetter(obj, field))
@@ -82,4 +83,24 @@ public class ReflectionUtils {
                 }, m -> m));
     }
 
+    public static List<Field> getFields(Class<?> klass) {
+        return FIELD_CACHE.computeIfAbsent(klass, key -> List.of(klass.getDeclaredFields()));
+    }
+
+    public static List<? extends Annotation> getAnnotations(Class<?> klass, Class<? extends Annotation> annoType) {
+        if (Objects.isNull(klass) || Objects.isNull(annoType)) return Collections.emptyList();
+
+        return getFields(klass).stream()
+                .filter(f -> f.isAnnotationPresent(annoType))
+                .map(f -> f.getAnnotation(annoType))
+                .toList();
+    }
+
+    public static Object getValue(Method method, Object obj) {
+        try {
+            return method.invoke(obj);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

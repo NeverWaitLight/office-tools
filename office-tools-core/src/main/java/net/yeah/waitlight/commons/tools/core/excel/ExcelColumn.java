@@ -10,8 +10,4 @@ public @interface ExcelColumn {
     String title() default "";
 
     int order() default -1;
-
-    boolean canImport() default true;
-
-    boolean canExport() default true;
 }

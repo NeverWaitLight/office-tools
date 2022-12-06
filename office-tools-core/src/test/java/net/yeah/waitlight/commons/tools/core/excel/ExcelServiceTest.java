@@ -1,12 +1,9 @@
-package net.yeah.waitlight.commons.tools.core.excel.poi;
+package net.yeah.waitlight.commons.tools.core.excel;
 
 import com.github.javafaker.Faker;
 import lombok.extern.slf4j.Slf4j;
-import net.yeah.waitlight.commons.tools.core.excel.ExcelHelper;
-import net.yeah.waitlight.commons.tools.core.excel.XLS;
 import net.yeah.waitlight.commons.tools.core.model.Gender;
 import net.yeah.waitlight.commons.tools.core.model.Student;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.After;
 import org.junit.Assert;
@@ -19,32 +16,41 @@ import java.util.List;
 import java.util.Objects;
 
 @Slf4j
-public class PoiExcelHSSFHelperTest {
+public class ExcelServiceTest {
+
     public static final int TOTAL = XLS.MAX_ROW_NUM / 100;
+
     public static final String EXCEL_PATH = "hssf-test.xls";
 
-    private final ExcelHelper<HSSFWorkbook> helper = new PoiExcelHSSFHelper();
+    private final ExcelService excelService = new ExcelService();
 
-    private List<Student> students = new ArrayList<>();
+    private List<Object> students = new ArrayList<>();
 
     private Workbook workbook = null;
 
     @Test
     public void buildExcel() {
-        workbook = helper.buildExcel(students);
+        workbook = excelService.build(students);
         Assert.assertNotNull(workbook);
+    }
+
+    @Test
+    public void reade() {
+//        try {
+//            List<Student> read = excelService.read(new FileInputStream(EXCEL_PATH), Student.class);
+//        } catch (FileNotFoundException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     @Before
     public void prepareData() {
-        final List<Student> r = new ArrayList<>(TOTAL);
+        final List<Object> r = new ArrayList<>(TOTAL);
         final Faker faker = new Faker();
 
         for (int i = 0; i < TOTAL; i++) {
             int no = faker.number().numberBetween(100000, 200000);
             String name = faker.name().fullName();
-            int age = faker.number().numberBetween(10, 15);
-            String address = faker.address().fullAddress();
             double fee = faker.number().randomDouble(3, 100, 200);
             Gender gender = Gender.values()[faker.random().nextInt(0, 1)];
             Boolean checkin = 1 == faker.random().nextInt(0, 1);
@@ -52,8 +58,6 @@ public class PoiExcelHSSFHelperTest {
             Student student = new Student()
                     .setNo(no)
                     .setName(name)
-                    .setAge(age)
-                    .setAddress(address)
                     .setFee(fee)
                     .setGender(gender)
                     .setCheckin(checkin);
@@ -66,11 +70,10 @@ public class PoiExcelHSSFHelperTest {
     @After
     public void write() throws Exception {
         if (Objects.isNull(workbook)) return;
-        try (FileOutputStream fileOut = new FileOutputStream(EXCEL_PATH)) {
+        try (FileOutputStream fileOut = new FileOutputStream("target/" + EXCEL_PATH)) {
             workbook.write(fileOut);
             fileOut.flush();
         }
     }
-
 
 }

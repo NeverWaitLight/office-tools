@@ -5,9 +5,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.yeah.waitlight.commons.tools.core.reflection.FieldDescriptor;
+import org.apache.poi.ss.usermodel.Cell;
 
-import java.util.function.Supplier;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 @Getter
 @Setter
@@ -15,8 +16,14 @@ import java.util.function.Supplier;
 @AllArgsConstructor
 @Accessors(chain = true)
 public class CellDescriptor {
-    private int cellnum;
-    private FieldDescriptor fdp;
-    private Object obj;
-    private Supplier<?> valueSupplier;
+    private Cell cell;
+    private Field field;
+    private Method getter;
+    private Method setter;
+    private Object value;
+
+    public CellDescriptor(Cell cell, Object value) {
+        this.cell = cell;
+        this.value = value;
+    }
 }
