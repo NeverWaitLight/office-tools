@@ -7,6 +7,4 @@ import lombok.Setter;
 @Setter
 public final class TaskContextHolder {
 
-    private LanguageCountry languageCountry;
-
 }

@@ -1,7 +1,6 @@
 package net.yeah.waitlight.commons.tools.core.excel.poi;
 
 import lombok.extern.slf4j.Slf4j;
-import net.yeah.waitlight.commons.tools.core.converter.ConversionService;
 import net.yeah.waitlight.commons.tools.core.excel.CellDescriptor;
 import net.yeah.waitlight.commons.tools.core.excel.ExcelColumn;
 import net.yeah.waitlight.commons.tools.core.excel.RowDescriptor;
@@ -13,7 +12,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
-import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -89,14 +87,6 @@ public abstract class AbstractPoiExcelHelper {
         Object value = supplier.get();
         FieldDescriptor fdp = cellDescriptor.getFdp();
         ExcelColumn annotation = fdp.getAnnotation(ExcelColumn.class);
-        Class<? extends ConversionService> aClass = annotation.conversionService();
-        ConversionService conversionService = null;
-        try {
-            Constructor<? extends ConversionService> constructor = aClass.getConstructor();
-            conversionService = constructor.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
 
         Class<?> type = value.getClass();
         if (String.class.isAssignableFrom(type)) {
@@ -110,8 +100,7 @@ public abstract class AbstractPoiExcelHelper {
         // todo: i18N
         if (Boolean.class.isAssignableFrom(type)) {
             Boolean v = (Boolean) value;
-            Object convert = conversionService.convert(v);
-            cell.setCellValue(convert.toString());
+            cell.setCellValue(v.toString());
         }
 
         // todo: i18N
