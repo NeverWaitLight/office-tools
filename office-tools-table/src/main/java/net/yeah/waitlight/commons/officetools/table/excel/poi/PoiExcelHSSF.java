@@ -1,8 +1,7 @@
-package net.yeah.waitlight.commons.officetools.table.poi;
+package net.yeah.waitlight.commons.officetools.table.excel.poi;
 
 import lombok.extern.slf4j.Slf4j;
-import net.yeah.waitlight.commons.officetools.common.convert.ConversionService;
-import net.yeah.waitlight.commons.officetools.table.ExcelHelper;
+import net.yeah.waitlight.commons.officetools.table.TableHelper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -12,7 +11,7 @@ import java.io.InputStream;
 import java.util.*;
 
 @Slf4j
-public class PoiExcelHSSF extends AbstractPoiExcel implements ExcelHelper<HSSFWorkbook> {
+public class PoiExcelHSSF extends AbstractPoiExcel implements TableHelper<HSSFWorkbook> {
 
     @Override
     public HSSFWorkbook build(Collection<Object> data) {

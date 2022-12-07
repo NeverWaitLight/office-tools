@@ -3,7 +3,7 @@ package net.yeah.waitlight.commons.tools.core.model;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.yeah.waitlight.commons.officetools.table.ExcelColumn;
+import net.yeah.waitlight.commons.officetools.table.excel.ExcelColumn;
 
 @Setter
 @Getter

@@ -26,6 +26,7 @@
 
         <apache.commons.lang3.version>3.12.0</apache.commons.lang3.version>
         <apache.poi.version>5.2.2</apache.poi.version>
+        <apache.csv.version>1.9.0</apache.csv.version>
         <lombok.version>1.18.24</lombok.version>
 
         <junit.version>4.13.2</junit.version>
@@ -44,7 +45,6 @@
                 <version>${apache.commons.lang3.version}</version>
             </dependency>
 
-            <!-- poi-->
             <dependency>
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi</artifactId>
@@ -55,7 +55,11 @@
                 <artifactId>poi-ooxml</artifactId>
                 <version>${apache.poi.version}</version>
             </dependency>
-            <!-- poi-->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-csv</artifactId>
+                <version>${apache.csv.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.projectlombok</groupId>

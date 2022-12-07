@@ -1,4 +1,4 @@
-package net.yeah.waitlight.commons.officetools.table;
+package net.yeah.waitlight.commons.officetools.table.excel;
 
 public class XLS {
     public static final int MAX_ROW_NUM = 65535;

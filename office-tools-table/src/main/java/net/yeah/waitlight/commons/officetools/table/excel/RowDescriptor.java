@@ -1,4 +1,4 @@
-package net.yeah.waitlight.commons.officetools.table;
+package net.yeah.waitlight.commons.officetools.table.excel;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
