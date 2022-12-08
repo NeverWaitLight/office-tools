@@ -1,11 +1,9 @@
-package net.yeah.waitlight.commons.tools.core.excel;
+package net.yeah.waitlight.commons.officetools.table.excel;
 
 import com.github.javafaker.Faker;
 import lombok.extern.slf4j.Slf4j;
-import net.yeah.waitlight.commons.officetools.table.excel.ExcelService;
-import net.yeah.waitlight.commons.officetools.table.excel.XLS;
-import net.yeah.waitlight.commons.tools.core.model.Gender;
-import net.yeah.waitlight.commons.tools.core.model.Student;
+import net.yeah.waitlight.commons.officetools.table.model.Gender;
+import net.yeah.waitlight.commons.officetools.table.model.Student;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.After;
 import org.junit.Assert;

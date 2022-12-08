@@ -8,18 +8,22 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.*;
 
 @Slf4j
 public class PoiExcelHSSF extends AbstractPoiExcel implements TableHelper<HSSFWorkbook> {
 
     @Override
+    public void build(Collection<Object> data, OutputStream outputStream) {
+
+    }
+
     public HSSFWorkbook build(Collection<Object> data) {
         if (CollectionUtils.isEmpty(data)) return new HSSFWorkbook();
         return build(Map.of("sheet", data));
     }
 
-    @Override
     public HSSFWorkbook build(Map<String, Collection<Object>> data) {
         if (MapUtils.isEmpty(data)) return new HSSFWorkbook();
         HSSFWorkbook workbook = new HSSFWorkbook();

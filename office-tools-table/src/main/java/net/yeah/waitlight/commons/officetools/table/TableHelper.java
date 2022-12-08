@@ -1,15 +1,13 @@
 package net.yeah.waitlight.commons.officetools.table;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 public interface TableHelper<E> {
 
-    E build(Collection<Object> data);
-
-    E build(Map<String, Collection<Object>> data);
+    void build(Collection<Object> data, OutputStream out);
 
     <T> List<T> read(E e, Class<T> klass);
 

@@ -1,4 +1,4 @@
-package net.yeah.waitlight.commons.tools.core.model;
+package net.yeah.waitlight.commons.officetools.table.model;
 
 import lombok.Getter;
 import lombok.Setter;

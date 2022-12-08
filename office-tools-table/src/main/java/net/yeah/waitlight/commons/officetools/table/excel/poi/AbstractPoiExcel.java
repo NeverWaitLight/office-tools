@@ -51,7 +51,7 @@ public abstract class AbstractPoiExcel {
     protected RowDescriptor resolveTitleRow(Row row, Class<?> klass) {
         List<CellDescriptor> cellDescriptors = ReflectionUtils.getAnnotations(klass, ExcelColumn.class)
                 .stream()
-                .map(anno -> (ExcelColumn) anno)
+                .map(ExcelColumn.class::cast)
                 .sorted(Comparator.comparingInt(ExcelColumn::order))
                 .map(ExcelColumn::title)
                 .map(title -> new CellDescriptor(null, title))
