@@ -11,7 +11,8 @@ Common tools wrappers
 
 # Excel
 
-- [ ] 读取数据有类型转换问题，需要简易类型转换功能
+- [X] 读取数据有类型转换问题，需要简易类型转换功能
+- [ ] csv
 
 ## xls xlsx
 
