@@ -1,47 +1,52 @@
 package net.yeah.waitlight.commons.officetools.table.excel;
 
-import net.yeah.waitlight.commons.officetools.common.ThreadPool;
-import net.yeah.waitlight.commons.officetools.table.TableHelper;
-import net.yeah.waitlight.commons.officetools.table.excel.poi.PoiExcelHSSF;
-import org.apache.poi.ss.usermodel.Workbook;
+import lombok.extern.slf4j.Slf4j;
+import net.yeah.waitlight.commons.officetools.common.convert.ConversionService;
+import net.yeah.waitlight.commons.officetools.table.TableHandler;
+import org.apache.commons.collections4.CollectionUtils;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Future;
 
-public class ExcelService implements TableHelper<Workbook> {
+import static net.yeah.waitlight.commons.officetools.common.OfficeToolsThreadPool.DEFAULT_POOL;
 
-    private final PoiExcelHSSF hssf = new PoiExcelHSSF();
+@Slf4j
+public class ExcelService implements TableHandler {
 
-    public Workbook build(Collection<Object> data) {
-        try {
-            ExcelContextHolder.setData(data);
-            return hssf.build(data);
-        } finally {
-            ExcelContextHolder.clean();
-        }
+    private final PoiExcelHSSF hssf;
+
+    public ExcelService(ConversionService conversionService) {
+        this.hssf = new PoiExcelHSSF(conversionService);
     }
 
-    public Future<Workbook> buildAsync(Collection<Object> data) {
-        return ThreadPool.POOL.submit(() -> {
-            ExcelContextHolder.setData(data);
-            return hssf.build(data);
+    @Override
+    public void write(Collection<Object> data, OutputStream outputStream) throws IOException {
+        if (CollectionUtils.isEmpty(data)) return;
+        Objects.requireNonNull(outputStream, "OutputStream is required");
+
+        hssf.write(data, outputStream);
+    }
+
+    public Future<Void> buildAsync(Collection<Object> data, OutputStream outputStream) {
+        if (CollectionUtils.isEmpty(data)) return null;
+        Objects.requireNonNull(outputStream, "OutputStream is required");
+
+        return DEFAULT_POOL.submit(() -> {
+            write(data, outputStream);
+            return null;
         });
     }
 
     @Override
-    public void build(Collection<Object> data, OutputStream out) {
+    public <T> List<T> read(InputStream inputStream, Class<T> klass) throws IOException {
+        Objects.requireNonNull(inputStream, "InputStream is required");
+        Objects.requireNonNull(klass, "Klass is required");
 
-    }
-
-    @Override
-    public <T> List<T> read(Workbook sheets, Class<T> klass) {
-        return null;
-    }
-
-    public <T> List<T> read(InputStream inputStream, Class<T> klass) {
         return hssf.read(inputStream, klass);
     }
 }

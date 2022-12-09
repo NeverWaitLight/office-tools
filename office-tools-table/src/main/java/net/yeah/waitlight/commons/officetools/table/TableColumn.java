@@ -1,4 +1,4 @@
-package net.yeah.waitlight.commons.officetools.table.excel;
+package net.yeah.waitlight.commons.officetools.table;
 
 import java.lang.annotation.*;
 
@@ -6,7 +6,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-public @interface ExcelColumn {
+public @interface TableColumn {
     String title() default "";
 
     int order() default -1;

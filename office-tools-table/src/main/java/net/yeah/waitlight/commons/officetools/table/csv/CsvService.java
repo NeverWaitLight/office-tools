@@ -1,27 +1,28 @@
 package net.yeah.waitlight.commons.officetools.table.csv;
 
-import net.yeah.waitlight.commons.officetools.table.TableHelper;
-import org.apache.commons.csv.CSVPrinter;
+import net.yeah.waitlight.commons.officetools.common.convert.ConversionService;
+import net.yeah.waitlight.commons.officetools.table.TableHandler;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
 
-public class CsvService implements TableHelper<CSVPrinter> {
-    private final CommonsCsv commonsCsv = new CommonsCsv();
+public class CsvService implements TableHandler {
+    private final CommonsCsv commonsCsv;
 
-    public void build(Collection<Object> data, OutputStream out) {
-        commonsCsv.build(data, out);
+    public CsvService(ConversionService conversionService) {
+        this.commonsCsv = new CommonsCsv(conversionService);
     }
 
     @Override
-    public <T> List<T> read(CSVPrinter csvPrinter, Class<T> klass) {
-        return null;
+    public void write(Collection<Object> data, OutputStream out) throws IOException {
+        commonsCsv.write(data, out);
     }
-   
+
     @Override
-    public <D> List<D> read(InputStream inputStream, Class<D> klass) {
-        return null;
+    public <D> List<D> read(InputStream inputStream, Class<D> klass) throws IOException {
+        return commonsCsv.read(inputStream, klass);
     }
 }

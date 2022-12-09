@@ -2,20 +2,17 @@ package net.yeah.waitlight.commons.officetools.table.excel;
 
 import com.github.javafaker.Faker;
 import lombok.extern.slf4j.Slf4j;
+import net.yeah.waitlight.commons.officetools.common.convert.ConversionService;
 import net.yeah.waitlight.commons.officetools.table.model.Gender;
 import net.yeah.waitlight.commons.officetools.table.model.Student;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 public class ExcelServiceTest {
@@ -24,26 +21,25 @@ public class ExcelServiceTest {
 
     public static final String OUT_PUT_PATH = "target/hssf-test.xls";
 
-    private final ExcelService excelService = new ExcelService();
-
-    private List<Object> students = new ArrayList<>();
-
-    private Workbook workbook = null;
+    private final ExcelService excelService = new ExcelService(new ConversionService());
 
     @Test
-    public void build() {
-        workbook = excelService.build(students);
-        Assert.assertNotNull(workbook);
+    public void write() throws IOException {
+        try (FileOutputStream out = new FileOutputStream(OUT_PUT_PATH)) {
+            excelService.write(prepareData(), out);
+        }
     }
 
     @Test
-    public void reade() throws FileNotFoundException {
-        List<Student> data = excelService.read(new FileInputStream(OUT_PUT_PATH), Student.class);
-        Assert.assertEquals(COUNT, data.size());
+    public void reade() throws IOException {
+        write();
+        try (FileInputStream fileInputStream = new FileInputStream(OUT_PUT_PATH)) {
+            List<Student> data = excelService.read(fileInputStream, Student.class);
+            Assert.assertEquals(COUNT, data.size());
+        }
     }
 
-    @Before
-    public void prepareData() {
+    public List<Object> prepareData() {
         final List<Object> r = new ArrayList<>(COUNT);
         final Faker faker = new Faker();
 
@@ -63,16 +59,7 @@ public class ExcelServiceTest {
             r.add(student);
         }
 
-        students = r;
-    }
-
-    @After
-    public void write() throws Exception {
-        if (Objects.isNull(workbook)) return;
-        try (FileOutputStream fileOut = new FileOutputStream(OUT_PUT_PATH)) {
-            workbook.write(fileOut);
-            fileOut.flush();
-        }
+        return r;
     }
 
 }
