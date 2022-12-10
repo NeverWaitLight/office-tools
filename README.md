@@ -12,7 +12,9 @@ Common tools wrappers
 # Excel
 
 - [X] 读取数据有类型转换问题，需要简易类型转换功能
-- [ ] csv
+- [X] csv
+- [ ] word
+- [ ] pdf
 
 ## xls xlsx
 
