@@ -1,47 +1,74 @@
 package net.yeah.waitlight.commons.officetools.doc;
 
-import org.apache.poi.wp.usermodel.HeaderFooterType;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.xwpf.usermodel.*;
 
-import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
 
+@Slf4j
 public class DocService {
 
-    public static void main(String[] args) throws Exception {
+    public void template(InputStream inputStream, OutputStream outputStream, Map<String, Object> data) throws IOException {
+        try (XWPFDocument document = new XWPFDocument(inputStream)) {
+            readHeader(document);
+            readParagraph(document);
+            readTable(document);
+            readFooter(document);
+            document.write(outputStream);
+        }
+    }
 
-        try (XWPFDocument doc = new XWPFDocument()) {
+    public void read(InputStream inputStream, Class<?> dataType) throws IOException {
+        try (XWPFDocument document = new XWPFDocument(inputStream)) {
+            readHeader(document);
+            readParagraph(document);
+            readTable(document);
+            readFooter(document);
+        }
+    }
 
-            XWPFParagraph p = doc.createParagraph();
-            XWPFRun r = p.createRun();
-            r.setBold(true);
-            r.setFontSize(30);
-            r.setText("Create document header and footer!");
+    private void readHeader(XWPFDocument document) {
+        List<XWPFHeader> headers = document.getHeaderList();
+        for (int i = 0; i < headers.size(); i++) {
+            XWPFHeader header = headers.get(i);
+            log.info("Header {} --> {}", i, header.getText());
+        }
+    }
 
-            // next page
-            XWPFParagraph p2 = doc.createParagraph();
-            p2.setWordWrapped(true);
-            p2.setPageBreak(true);  // new page break
+    private void readFooter(XWPFDocument document) {
+        List<XWPFFooter> footers = document.getFooterList();
+        for (int i = 0; i < footers.size(); i++) {
+            XWPFFooter footer = footers.get(i);
+            log.info("Footer {} --> {}", i, footer.getText());
+        }
+    }
 
-            XWPFRun r2 = p2.createRun();
-            r2.setFontSize(40);
-            r2.setItalic(true);
-            r2.setText("New Page");
+    private void readTable(XWPFDocument document) {
+        List<XWPFTable> tables = document.getTables();
+        for (int i = 0; i < tables.size(); i++) {
+            log.info("Table {} --> {}", i, tables.get(i).getText());
+        }
+    }
 
-            // document header and footer
-            XWPFHeader head = doc.createHeader(HeaderFooterType.DEFAULT);
-            head.createParagraph()
-                    .createRun()
-                    .setText("This is document header");
-
-            XWPFFooter foot = doc.createFooter(HeaderFooterType.DEFAULT);
-            foot.createParagraph()
-                    .createRun()
-                    .setText("This is document footer");
-
-            try (OutputStream os = new FileOutputStream("header.docx")) {
-                doc.write(os);
+    private void readParagraph(XWPFDocument document) {
+        List<XWPFParagraph> paragraphs = document.getParagraphs();
+        for (int i = 0; i < paragraphs.size(); i++) {
+            XWPFParagraph paragraph = paragraphs.get(i);
+            log.info("Paragraph {} --> {}", i, paragraph.getText());
+            List<XWPFRun> runs = paragraph.getRuns();
+            for (int j = 0; j < runs.size(); j++) {
+                XWPFRun run = runs.get(j);
+                String text = run.text().trim();
+                log.info("Run {} --> {}", j, text);
+                if (text.contains("{{")) {
+                    run.setText("12312321",0);
+                }
             }
         }
     }
+
 }
