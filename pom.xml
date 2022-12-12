@@ -13,6 +13,7 @@
         <module>office-tools-table</module>
         <module>office-tools-commons</module>
         <module>office-tools-doc</module>
+        <module>office-tools-pdf</module>
     </modules>
 
     <packaging>pom</packaging>
@@ -28,6 +29,8 @@
         <apache.commons.lang3.version>3.12.0</apache.commons.lang3.version>
         <apache.poi.version>5.2.2</apache.poi.version>
         <apache.csv.version>1.9.0</apache.csv.version>
+        <itext.version>5.5.13.3</itext.version>
+        <itext.asian.version>5.2.0</itext.asian.version>
         <lombok.version>1.18.24</lombok.version>
 
         <junit.version>4.13.2</junit.version>
@@ -110,6 +113,16 @@
             </dependency>
             <!-- logging -->
 
+            <dependency>
+                <groupId>com.itextpdf</groupId>
+                <artifactId>itextpdf</artifactId>
+                <version>${itext.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.itextpdf</groupId>
+                <artifactId>itext-asian</artifactId>
+                <version>${itext.asian.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
