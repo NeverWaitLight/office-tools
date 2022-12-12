@@ -21,12 +21,23 @@
 
         <dependency>
             <groupId>com.itextpdf</groupId>
-            <artifactId>itextpdf</artifactId>
+            <artifactId>kernel</artifactId>
         </dependency>
-
         <dependency>
             <groupId>com.itextpdf</groupId>
-            <artifactId>itext-asian</artifactId>
+            <artifactId>io</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>layout</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>forms</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>pdfa</artifactId>
         </dependency>
     </dependencies>
 

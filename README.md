@@ -9,12 +9,17 @@ Common tools wrappers
 
 对于人类用户来说，基本只有 字符串 和 数字 两种数据。其他数据图片
 
-# Excel
-
 - [X] 读取数据有类型转换问题，需要简易类型转换功能
-- [X] csv
-- [ ] word
-- [ ] pdf
+- [X] CSV
+- [X] DOC
+- [X] PDF
+- [ ] 图片导出
+    - [ ] Table
+    - [ ] Doc
+    - [ ] PDF
+- [ ] 文件管理
+
+# Table
 
 ## xls xlsx
 
@@ -22,6 +27,4 @@ Common tools wrappers
 
 https://bz.apache.org/bugzilla/show_bug.cgi?id=61665
 
-# Word
 
-# PDF
